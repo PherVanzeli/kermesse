@@ -53,9 +53,14 @@ export default async function DashboardPage() {
                     <h3 className="font-bold text-[#2f241d]">{event.name}</h3>
                     <p className="mt-1 text-sm text-[#947b68]">{event.event_date} · {event.status}</p>
                   </div>
-                  <Link href={`/evento/${event.slug}`} className="text-sm font-bold text-[#e85d3f]">
-                    Ver cardápio
-                  </Link>
+                  <div className="flex items-center gap-4">
+                    <Link href={`/painel/eventos/${event.id}/produtos`} className="text-sm font-bold text-[#2f8f75]">
+                      Produtos
+                    </Link>
+                    <Link href={`/evento/${event.slug}`} className="text-sm font-bold text-[#e85d3f]">
+                      Cardápio
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>

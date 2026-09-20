@@ -57,6 +57,15 @@ Para cada produto:
 4. Marque o produto como **Ativo**.
 5. Salve.
 
+No painel da Kermesse, a gestão de produtos fica dentro do evento em:
+
+```text
+/painel/eventos/[id]/produtos
+```
+
+O organizador pode adicionar produtos, informar estoque, escolher categoria e
+desativar temporariamente itens sem apagá-los do cardápio.
+
 ### Recomendações para o cardápio
 
 - Use nomes que o público reconheça rapidamente.
