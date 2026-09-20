@@ -45,7 +45,7 @@ export async function GET(
 
   const { data: orders, error } = await result.supabase
     .from("orders")
-    .select("id, customer_name, pickup_code, total_cents, status, created_at, ready_at")
+    .select("id, customer_name, pickup_code, total_cents, status, created_at, ready_at, delivered_at")
     .eq("event_id", id)
     .order("created_at", { ascending: true });
   if (error) {
@@ -96,7 +96,7 @@ export async function PATCH(
   }
   if (
     typeof payload.orderId !== "string" ||
-    !["preparing", "ready"].includes(String(payload.status))
+    !["preparing", "ready", "delivered"].includes(String(payload.status))
   ) {
     return NextResponse.json({ error: "Status do pedido inválido." }, { status: 400 });
   }
@@ -104,13 +104,14 @@ export async function PATCH(
   const update = {
     status: payload.status,
     ...(payload.status === "ready" ? { ready_at: new Date().toISOString() } : {}),
+    ...(payload.status === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
   };
   const { data, error } = await result.supabase
     .from("orders")
     .update(update)
     .eq("id", payload.orderId)
     .eq("event_id", id)
-    .select("id, status, ready_at")
+    .select("id, status, ready_at, delivered_at")
     .single();
   if (error) {
     return NextResponse.json({ error: "Não foi possível atualizar o pedido." }, { status: 500 });

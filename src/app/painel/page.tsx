@@ -62,6 +62,9 @@ export default async function DashboardPage() {
                     <Link href={`/painel/eventos/${event.id}/producao`} className="text-sm font-bold text-[#2f8f75]">
                       Produção
                     </Link>
+                    <Link href={`/painel/eventos/${event.id}/retirada`} className="text-sm font-bold text-[#2f8f75]">
+                      Retirada
+                    </Link>
                     <Link href={`/evento/${event.slug}`} className="text-sm font-bold text-[#e85d3f]">
                       Cardápio
                     </Link>

@@ -187,8 +187,8 @@ supabase/migrations/0009_production_orders.sql
 ```
 
 Essa migration permite que membros do organizador consultem pedidos, itens e
-pagamentos do próprio evento. O painel atualiza pedidos entre preparando e
-pronto.
+pagamentos do próprio evento. Os painéis atualizam pedidos entre preparando,
+pronto e entregue.
 
 Devem existir, entre outras:
 
