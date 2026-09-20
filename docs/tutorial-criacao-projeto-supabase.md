@@ -125,6 +125,16 @@ criptografado pelo backend. Não grave access tokens em texto puro. A chave de
 criptografia deve ficar somente no ambiente do servidor, nunca em uma variável
 `NEXT_PUBLIC_` e nunca no banco junto do ciphertext.
 
+Depois aplique a migration de bootstrap da conta:
+
+```text
+supabase/migrations/0003_auth_tenant_bootstrap.sql
+```
+
+Ela cria automaticamente um tenant e um membro com papel `owner` quando um
+novo usuário é cadastrado pelo Supabase Auth. Isso permite que cada
+organizador comece com uma organização isolada.
+
 Devem existir, entre outras:
 
 - `tenants`
