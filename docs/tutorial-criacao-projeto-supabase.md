@@ -170,6 +170,16 @@ supabase/migrations/0007_product_images_storage.sql
 Ela cria o bucket público `product-images`. O painel limita uploads a imagens
 JPG, PNG ou WebP de até 2 MB.
 
+Para persistir pedidos e reservar o estoque no servidor, aplique também:
+
+```text
+supabase/migrations/0008_order_creation.sql
+```
+
+Essa migration cria a função transacional usada pelo checkout público. Ela
+valida o evento, os produtos ativos, as quantidades e o estoque, calcula o
+total no banco, gera a senha do pedido e registra o pagamento pendente.
+
 Devem existir, entre outras:
 
 - `tenants`

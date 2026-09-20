@@ -45,6 +45,7 @@ export default async function EventPage({
   return (
     <MenuClient
       event={{
+        id: event.id,
         name: event.name,
         subtitle: "Cardápio do evento",
         location: formatLocation(event.location, event.event_date),

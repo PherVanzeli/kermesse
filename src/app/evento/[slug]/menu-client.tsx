@@ -13,6 +13,7 @@ type Product = {
 };
 
 type EventData = {
+  id: string;
   name: string;
   subtitle: string;
   location: string;
@@ -37,6 +38,8 @@ export function MenuClient({ event }: { event: EventData }) {
   const [orderCode, setOrderCode] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "cash" | "paid">("pending");
   const [pixCopied, setPixCopied] = useState(false);
+  const [orderError, setOrderError] = useState("");
+  const [orderSubmitting, setOrderSubmitting] = useState(false);
 
   const products = event.products.filter(
     (product) => category === "Todos" || product.category === category,
@@ -74,11 +77,39 @@ export function MenuClient({ event }: { event: EventData }) {
     setCheckoutOpen(true);
   };
 
-  const confirmOrder = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!customerName.trim()) return;
-    setOrderCode(`A-${String((Date.now() % 900) + 100)}`);
-    setPaymentStatus(paymentMethod === "pix" ? "pending" : "cash");
+  const confirmOrder = async (formEvent: React.FormEvent<HTMLFormElement>) => {
+    formEvent.preventDefault();
+    if (!customerName.trim() || orderSubmitting) return;
+    setOrderError("");
+    setOrderSubmitting(true);
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: event.id,
+          customerName,
+          paymentMethod,
+          items: cartItems.map((product) => ({
+            productId: product.id,
+            quantity: cart[product.id],
+          })),
+        }),
+      });
+      const result = (await response.json()) as {
+        order?: { pickupCode: string };
+        error?: string;
+      };
+      if (!response.ok || !result.order) {
+        throw new Error(result.error ?? "Não foi possível registrar o pedido.");
+      }
+      setOrderCode(result.order.pickupCode);
+      setPaymentStatus(paymentMethod === "pix" ? "pending" : "cash");
+    } catch (caught) {
+      setOrderError(caught instanceof Error ? caught.message : "Não foi possível registrar o pedido.");
+    } finally {
+      setOrderSubmitting(false);
+    }
   };
 
   const pixCode = `00020126580014BR.GOV.BCB.PIX0136kermesse-${orderCode ?? "pedido"}-${totalCents}5204000053039865802BR5920KERMESSE EVENTO6009SAO PAULO62070503***6304ABCD`;
@@ -325,10 +356,20 @@ export function MenuClient({ event }: { event: EventData }) {
                   </div>
                   <button
                     type="submit"
+                    disabled={orderSubmitting}
                     className="mt-5 w-full rounded-2xl bg-[#e85d3f] px-5 py-4 font-bold text-white shadow-lg shadow-[#e85d3f]/20 transition hover:bg-[#cf4c32]"
                   >
-                    {paymentMethod === "pix" ? "Gerar Pix e confirmar" : "Confirmar pedido"}
+                    {orderSubmitting
+                      ? "Registrando pedido..."
+                      : paymentMethod === "pix"
+                        ? "Gerar Pix e confirmar"
+                        : "Confirmar pedido"}
                   </button>
+                  {orderError && (
+                    <p className="mt-3 text-sm font-semibold text-[#b33b2d]" role="alert">
+                      {orderError}
+                    </p>
+                  )}
                 </form>
               </>
             ) : (
