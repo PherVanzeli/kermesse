@@ -38,12 +38,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "O pedido precisa ter itens válidos." }, { status: 400 });
   }
 
+  const databaseItems = items.map((item) => ({
+    product_id: item.productId,
+    quantity: item.quantity,
+  }));
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_public_order", {
     p_event_id: payload.eventId,
     p_customer_name: payload.customerName.trim(),
     p_payment_method: payload.paymentMethod,
-    p_items: items,
+    p_items: databaseItems,
   });
 
   if (error || !data?.[0]) {
