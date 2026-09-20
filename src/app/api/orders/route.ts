@@ -47,12 +47,22 @@ export async function POST(request: Request) {
   });
 
   if (error || !data?.[0]) {
-    const message = error?.message.includes("sem estoque")
+    const errorMessage = error?.message ?? "";
+    console.error("create_public_order failed", {
+      code: error?.code,
+      message: errorMessage,
+      eventId: payload.eventId,
+    });
+    const message = errorMessage.includes("function public.create_public_order")
+      ? "A configuração de pedidos ainda não foi aplicada no Supabase. Execute a migration 0008."
+      : errorMessage.includes("sem estoque")
       ? "Um dos produtos ficou sem estoque."
-      : error?.message.includes("não está disponível")
+      : errorMessage.includes("não está disponível")
         ? "Um dos produtos não está mais disponível."
+        : errorMessage.includes("Evento não encontrado")
+          ? "Este evento não está disponível para novos pedidos."
         : "Não foi possível registrar o pedido.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: error?.code === "42883" ? 503 : 400 });
   }
 
   return NextResponse.json(
