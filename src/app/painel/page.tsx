@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { EventStatusControl } from "@/components/event-status-control";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -54,6 +55,7 @@ export default async function DashboardPage() {
                     <p className="mt-1 text-sm text-[#947b68]">{event.event_date} · {event.status}</p>
                   </div>
                   <div className="flex items-center gap-4">
+                    <EventStatusControl eventId={event.id} status={event.status} />
                     <Link href={`/painel/eventos/${event.id}/produtos`} className="text-sm font-bold text-[#2f8f75]">
                       Produtos
                     </Link>
