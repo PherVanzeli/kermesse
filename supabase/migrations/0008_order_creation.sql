@@ -96,7 +96,7 @@ begin
       select 1
       from public.orders
       where event_id = p_event_id
-        and pickup_code = new_pickup_code
+        and orders.pickup_code = new_pickup_code
     );
   end loop;
 
