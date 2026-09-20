@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kermesse
 
-## Getting Started
+MVP para reduzir filas em festas de igreja e escolas: cardápio por QR code,
+pagamento digital e retirada por senha.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 com App Router, TypeScript e Tailwind CSS
+- Supabase Auth, PostgreSQL e Realtime (integração preparada)
+- Deploy recomendado: Vercel + Supabase
+
+## Rodando localmente
 
 ```bash
+npm install
+Copy-Item .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Preencha `.env.local` com a URL e a chave pública do projeto Supabase antes de
+usar autenticação ou dados reais. A migração inicial está em
+`supabase/migrations/0001_initial_schema.sql`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estrutura
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+src/
+  app/                 Rotas e telas do App Router
+  lib/supabase/        Clientes browser/server e renovação de sessão
+  proxy.ts             Atualização da sessão Supabase
+supabase/
+  migrations/          Schema inicial do domínio
+```
 
-## Learn More
+O landing page atual é apenas a primeira tela do produto. As próximas rotas
+podem ser organizadas por fluxo:
 
-To learn more about Next.js, take a look at the following resources:
+- `/evento/[slug]`: cardápio público e carrinho (demo em `/evento/arraia-sao-jose`)
+- O checkout demo permite escolher Pix ou pagamento com cartão no caixa. Para
+  Pix, exibe QR/copia e cola e permite simular a confirmação; essa simulação
+  será substituída pelo webhook do gateway. A confirmação ainda não grava no
+  Supabase.
+- `/pedido/[id]`: acompanhamento e QR de retirada
+- `/painel`: produtor, produção e retirada
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tutoriais
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Tutorial do organizador](./docs/tutorial-organizador.md): configuração do
+  evento, produtos, pagamentos, voluntários e encerramento.
+- [Fluxo do usuário](./docs/fluxo-do-usuario.md): jornada para escanear o QR
+  code, comprar, pagar e retirar o pedido.
+- [Integração com gateways](./docs/tutorial-integracao-gateways.md): guia
+  técnico para conectar Mercado Pago ou Asaas com segurança.
+- [Conta e deploy na Vercel](./docs/tutorial-conta-e-deploy-vercel.md): criação
+  da conta, conexão com GitHub, variáveis de ambiente e publicação.
