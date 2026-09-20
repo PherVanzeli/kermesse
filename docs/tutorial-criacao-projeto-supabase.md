@@ -219,6 +219,36 @@ https://kermesse.app
 Para recuperação de senha, configure os templates de e-mail em **Authentication
 > Email Templates**.
 
+### Redirecionamento após confirmação
+
+O cadastro da Kermesse envia o usuário para `/auth/callback` usando o domínio
+atual da aplicação. No Supabase, em **Authentication > URL Configuration**,
+configure:
+
+**Site URL**:
+
+```text
+https://kermesse-prod.vercel.app
+```
+
+**Redirect URLs**:
+
+```text
+http://localhost:3000/auth/callback
+https://kermesse-prod.vercel.app/auth/callback
+```
+
+Se o domínio próprio for configurado depois, adicione também:
+
+```text
+https://kermesse.app/auth/callback
+```
+
+Não use `http://localhost:3000` como único **Site URL** quando estiver
+testando a aplicação publicada. Depois de alterar essas URLs, faça um novo
+cadastro para gerar um novo e-mail de confirmação; links antigos podem
+continuar apontando para a configuração anterior.
+
 ### Login social
 
 Google ou outro provedor pode ser adicionado depois. Para o MVP, login por
