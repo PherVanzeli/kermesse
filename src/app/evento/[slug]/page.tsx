@@ -29,7 +29,7 @@ export default async function EventPage({
 
   const { data: products, error } = await supabase
     .from("products")
-    .select("id, name, description, price_cents, category, stock")
+    .select("id, name, description, price_cents, category, stock, image_url")
     .eq("event_id", event.id)
     .eq("active", true)
     .order("created_at", { ascending: true });
@@ -56,6 +56,7 @@ export default async function EventPage({
           priceCents: product.price_cents,
           category: product.category,
           emoji: categoryEmoji(product.category),
+          imageUrl: product.image_url,
         })),
       }}
     />

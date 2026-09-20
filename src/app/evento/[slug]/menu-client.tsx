@@ -9,6 +9,7 @@ type Product = {
   priceCents: number;
   category: string;
   emoji: string;
+  imageUrl: string | null;
 };
 
 type EventData = {
@@ -134,9 +135,17 @@ export function MenuClient({ event }: { event: EventData }) {
               key={product.id}
               className="flex items-center gap-4 rounded-3xl border border-[#f0e3d4] bg-white p-4 shadow-sm"
             >
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#fff1dc] text-3xl">
-                {product.emoji}
-              </div>
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt=""
+                  className="h-16 w-16 shrink-0 rounded-2xl object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#fff1dc] text-3xl">
+                  {product.emoji}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <h3 className="font-bold text-[#2f241d]">{product.name}</h3>
                 <p className="mt-1 text-sm text-[#947b68]">{product.description}</p>
@@ -187,7 +196,11 @@ export function MenuClient({ event }: { event: EventData }) {
             <div className="my-6 divide-y divide-[#eadbca]">
               {cartItems.map((product) => (
                 <div key={product.id} className="flex items-center gap-3 py-4">
-                  <span className="text-2xl">{product.emoji}</span>
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                  ) : (
+                    <span className="text-2xl">{product.emoji}</span>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-[#2f241d]">{product.name}</p>
                     <p className="text-sm text-[#947b68]">{formatPrice(product.priceCents)}</p>

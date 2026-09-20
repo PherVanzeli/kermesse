@@ -11,6 +11,7 @@ type Product = {
   category: string;
   active: boolean;
   catalog_product_id: string | null;
+  image_url: string | null;
 };
 
 type CatalogProduct = {
@@ -52,7 +53,9 @@ export function ProductManager({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [imageInputKey, setImageInputKey] = useState(0);
   const selectedCatalog = catalogProducts.find((item) => item.id === catalogProductId);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -93,6 +96,19 @@ export function ProductManager({ eventId }: { eventId: string }) {
     try {
       const priceCents = Math.round(Number(price.replace(",", ".")) * 100);
       const stockValue = stock.trim() === "" ? null : Number(stock);
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        const uploadResponse = await fetch("/api/storage/product-image", {
+          method: "POST",
+          headers: { "Content-Type": imageFile.type },
+          body: imageFile,
+        });
+        const uploadResult = (await uploadResponse.json()) as { url?: string; error?: string };
+        if (!uploadResponse.ok || !uploadResult.url) {
+          throw new Error(uploadResult.error ?? "Não foi possível enviar a foto.");
+        }
+        imageUrl = uploadResult.url;
+      }
       const response = await fetch(`/api/events/${eventId}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,6 +119,7 @@ export function ProductManager({ eventId }: { eventId: string }) {
           stock: stockValue,
           category,
           catalogProductId: catalogProductId || null,
+          imageUrl,
         }),
       });
       const result = (await response.json()) as { product?: Product; error?: string };
@@ -113,6 +130,8 @@ export function ProductManager({ eventId }: { eventId: string }) {
       setPrice("");
       setStock("");
       setCatalogProductId("");
+      setImageFile(null);
+      setImageInputKey((current) => current + 1);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Não foi possível criar o produto.");
     } finally {
@@ -196,6 +215,18 @@ export function ProductManager({ eventId }: { eventId: string }) {
           <div>
             <label htmlFor="product-description" className="text-sm font-bold text-[#5e493b]">Descrição</label>
             <textarea id="product-description" value={description} onChange={(event) => setDescription(event.target.value)} rows={2} className="mt-2 w-full rounded-2xl border border-[#eadbca] px-4 py-3 outline-none focus:border-[#e85d3f]" placeholder="Massa crocante e recheio cremoso" />
+          </div>
+          <div>
+            <label htmlFor="product-image" className="text-sm font-bold text-[#5e493b]">Foto (opcional)</label>
+            <input
+              key={imageInputKey}
+              id="product-image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
+              className="mt-2 block w-full rounded-2xl border border-[#eadbca] bg-white px-4 py-3 text-sm"
+            />
+            <p className="mt-1 text-xs text-[#947b68]">JPG, PNG ou WebP de até 2 MB.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

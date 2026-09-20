@@ -161,6 +161,15 @@ Essa migration cria `catalog_products`, adiciona a referência opcional em
 `products` e insere produtos iniciais como Coca-Cola Lata 350 ml, água,
 pastel, cachorro-quente e canjica.
 
+Para habilitar fotos dos produtos, aplique por último:
+
+```text
+supabase/migrations/0007_product_images_storage.sql
+```
+
+Ela cria o bucket público `product-images`. O painel limita uploads a imagens
+JPG, PNG ou WebP de até 2 MB.
+
 Devem existir, entre outras:
 
 - `tenants`

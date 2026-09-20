@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 type ProductPayload = {
   catalogProductId?: unknown;
+  imageUrl?: unknown;
   name?: unknown;
   description?: unknown;
   priceCents?: unknown;
@@ -57,7 +58,7 @@ export async function GET(
 
   const { data, error } = await result.supabase
     .from("products")
-    .select("id, name, description, price_cents, stock, category, active, catalog_product_id")
+    .select("id, name, description, price_cents, stock, category, active, catalog_product_id, image_url")
     .eq("event_id", id)
     .order("created_at", { ascending: true });
 
@@ -94,6 +95,7 @@ export async function POST(
 
   const catalogProductId =
     typeof payload.catalogProductId === "string" ? payload.catalogProductId : null;
+  const imageUrl = typeof payload.imageUrl === "string" ? payload.imageUrl.trim() || null : null;
   let name = typeof payload.name === "string" ? payload.name.trim() : "";
   let description =
     typeof payload.description === "string" ? payload.description.trim() || null : null;
@@ -137,6 +139,7 @@ export async function POST(
     .insert({
       event_id: id,
       catalog_product_id: catalogProductId,
+      image_url: imageUrl,
       name,
       description,
       category,
@@ -144,7 +147,7 @@ export async function POST(
       stock,
       active: true,
     })
-    .select("id, name, description, price_cents, stock, category, active, catalog_product_id")
+    .select("id, name, description, price_cents, stock, category, active, catalog_product_id, image_url")
     .single();
 
   if (error) {
