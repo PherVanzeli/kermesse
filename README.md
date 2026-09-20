@@ -53,3 +53,5 @@ podem ser organizadas por fluxo:
   técnico para conectar Mercado Pago ou Asaas com segurança.
 - [Conta e deploy na Vercel](./docs/tutorial-conta-e-deploy-vercel.md): criação
   da conta, conexão com GitHub, variáveis de ambiente e publicação.
+- [Criação do projeto Supabase](./docs/tutorial-criacao-projeto-supabase.md):
+  criação do banco, Auth, Storage, Realtime, RLS e conexão com a Vercel.
