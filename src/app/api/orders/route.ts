@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         ? "Um dos produtos não está mais disponível."
         : errorMessage.includes("Evento não encontrado")
           ? "Este evento não está disponível para novos pedidos."
-        : "Não foi possível registrar o pedido.";
+        : `Não foi possível registrar o pedido. ${errorMessage || "Verifique os logs da Vercel."}`;
     return NextResponse.json({ error: message }, { status: error?.code === "42883" ? 503 : 400 });
   }
 
