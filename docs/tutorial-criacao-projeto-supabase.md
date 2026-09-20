@@ -135,6 +135,13 @@ Ela cria automaticamente um tenant e um membro com papel `owner` quando um
 novo usuário é cadastrado pelo Supabase Auth. Isso permite que cada
 organizador comece com uma organização isolada.
 
+Para permitir o gerenciamento de eventos e produtos pelo painel, aplique
+também:
+
+```text
+supabase/migrations/0004_event_product_policies.sql
+```
+
 Devem existir, entre outras:
 
 - `tenants`
