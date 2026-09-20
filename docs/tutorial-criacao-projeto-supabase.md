@@ -142,6 +142,15 @@ também:
 supabase/migrations/0004_event_product_policies.sql
 ```
 
+Para liberar a consulta pública do cardápio, aplique por último:
+
+```text
+supabase/migrations/0005_public_catalog_policies.sql
+```
+
+Essa migration permite que visitantes consultem somente eventos `active` e
+produtos ativos desses eventos. Eventos em rascunho continuam invisíveis.
+
 Devem existir, entre outras:
 
 - `tenants`

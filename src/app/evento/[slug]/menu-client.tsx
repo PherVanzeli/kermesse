@@ -105,7 +105,7 @@ export function MenuClient({ event }: { event: EventData }) {
 
       <div className="sticky top-0 z-10 border-b border-[#f0e3d4] bg-[#fffaf3]/95 px-5 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-2xl gap-2 overflow-x-auto">
-          {event.categories.map((item) => (
+          {["Todos", ...event.categories].map((item) => (
             <button
               key={item}
               onClick={() => setCategory(item)}
