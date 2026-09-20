@@ -151,6 +151,16 @@ supabase/migrations/0005_public_catalog_policies.sql
 Essa migration permite que visitantes consultem somente eventos `active` e
 produtos ativos desses eventos. Eventos em rascunho continuam invisíveis.
 
+Para habilitar o catálogo de produtos comuns, aplique depois:
+
+```text
+supabase/migrations/0006_product_catalog.sql
+```
+
+Essa migration cria `catalog_products`, adiciona a referência opcional em
+`products` e insere produtos iniciais como Coca-Cola Lata 350 ml, água,
+pastel, cachorro-quente e canjica.
+
 Devem existir, entre outras:
 
 - `tenants`

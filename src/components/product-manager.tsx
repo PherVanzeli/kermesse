@@ -10,6 +10,17 @@ type Product = {
   stock: number | null;
   category: string;
   active: boolean;
+  catalog_product_id: string | null;
+};
+
+type CatalogProduct = {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  suggested_price_cents: number | null;
+  brand: string | null;
+  size: string | null;
 };
 
 const categories = [
@@ -31,6 +42,8 @@ function formatPrice(cents: number) {
 
 export function ProductManager({ eventId }: { eventId: string }) {
   const [products, setProducts] = useState<Product[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
+  const [catalogProductId, setCatalogProductId] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -39,14 +52,22 @@ export function ProductManager({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const selectedCatalog = catalogProducts.find((item) => item.id === catalogProductId);
 
   useEffect(() => {
     let active = true;
     fetch(`/api/events/${eventId}/products`)
       .then(async (response) => {
-        const result = (await response.json()) as { products?: Product[]; error?: string };
+        const result = (await response.json()) as {
+          products?: Product[];
+          catalogProducts?: CatalogProduct[];
+          error?: string;
+        };
         if (!response.ok) throw new Error(result.error ?? "Não foi possível carregar os produtos.");
-        if (active) setProducts(result.products ?? []);
+        if (active) {
+          setProducts(result.products ?? []);
+          setCatalogProducts(result.catalogProducts ?? []);
+        }
       })
       .catch((caught: unknown) => {
         if (active) {
@@ -81,6 +102,7 @@ export function ProductManager({ eventId }: { eventId: string }) {
           priceCents,
           stock: stockValue,
           category,
+          catalogProductId: catalogProductId || null,
         }),
       });
       const result = (await response.json()) as { product?: Product; error?: string };
@@ -90,6 +112,7 @@ export function ProductManager({ eventId }: { eventId: string }) {
       setDescription("");
       setPrice("");
       setStock("");
+      setCatalogProductId("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Não foi possível criar o produto.");
     } finally {
@@ -128,6 +151,43 @@ export function ProductManager({ eventId }: { eventId: string }) {
     <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
       <form onSubmit={submit} className="rounded-3xl border border-[#f0e3d4] bg-white p-6 shadow-sm">
         <h2 className="text-xl font-black text-[#2f241d]">Adicionar produto</h2>
+        <div className="mt-5 rounded-2xl bg-[#fff1dc] p-4">
+          <label htmlFor="catalog-product" className="text-sm font-bold text-[#5e493b]">
+            Produto comum da Kermesse
+          </label>
+          <select
+            id="catalog-product"
+            value={catalogProductId}
+            onChange={(event) => {
+              const value = event.target.value;
+              const selected = catalogProducts.find((item) => item.id === value);
+              setCatalogProductId(value);
+              if (selected) {
+                setName(selected.name);
+                setDescription(selected.description ?? "");
+                setCategory(selected.category);
+                setPrice(
+                  selected.suggested_price_cents === null
+                    ? ""
+                    : (selected.suggested_price_cents / 100).toFixed(2).replace(".", ","),
+                );
+              }
+            }}
+            className="mt-2 w-full rounded-xl border border-[#eadbca] bg-white px-3 py-2 outline-none"
+          >
+            <option value="">Criar produto personalizado</option>
+            {catalogProducts.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}{item.size ? ` · ${item.size}` : ""}
+              </option>
+            ))}
+          </select>
+          {selectedCatalog && (
+            <p className="mt-2 text-xs text-[#765f4d]">
+              O nome e a categoria serão copiados; você pode ajustar o preço e o estoque.
+            </p>
+          )}
+        </div>
         <div className="mt-5 space-y-4">
           <div>
             <label htmlFor="product-name" className="text-sm font-bold text-[#5e493b]">Nome</label>

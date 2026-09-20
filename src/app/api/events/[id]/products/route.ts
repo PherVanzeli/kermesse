@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 type ProductPayload = {
+  catalogProductId?: unknown;
   name?: unknown;
   description?: unknown;
   priceCents?: unknown;
@@ -56,15 +57,21 @@ export async function GET(
 
   const { data, error } = await result.supabase
     .from("products")
-    .select("id, name, description, price_cents, stock, category, active")
+    .select("id, name, description, price_cents, stock, category, active, catalog_product_id")
     .eq("event_id", id)
     .order("created_at", { ascending: true });
 
-  if (error) {
+  const { data: catalogProducts, error: catalogError } = await result.supabase
+    .from("catalog_products")
+    .select("id, name, description, category, suggested_price_cents, brand, size")
+    .eq("active", true)
+    .order("name", { ascending: true });
+
+  if (error || catalogError) {
     return NextResponse.json({ error: "Não foi possível carregar os produtos." }, { status: 500 });
   }
 
-  return NextResponse.json({ products: data });
+  return NextResponse.json({ products: data, catalogProducts });
 }
 
 export async function POST(
@@ -85,10 +92,12 @@ export async function POST(
     return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
   }
 
-  const name = typeof payload.name === "string" ? payload.name.trim() : "";
-  const description =
+  const catalogProductId =
+    typeof payload.catalogProductId === "string" ? payload.catalogProductId : null;
+  let name = typeof payload.name === "string" ? payload.name.trim() : "";
+  let description =
     typeof payload.description === "string" ? payload.description.trim() || null : null;
-  const category = typeof payload.category === "string" ? payload.category : "food";
+  let category = typeof payload.category === "string" ? payload.category : "food";
   const priceCents =
     typeof payload.priceCents === "number" && Number.isInteger(payload.priceCents)
       ? payload.priceCents
@@ -99,6 +108,22 @@ export async function POST(
       : typeof payload.stock === "number" && Number.isInteger(payload.stock)
         ? payload.stock
         : -1;
+
+  if (catalogProductId) {
+    const { data: catalogProduct } = await result.supabase
+      .from("catalog_products")
+      .select("name, description, category")
+      .eq("id", catalogProductId)
+      .eq("active", true)
+      .maybeSingle();
+
+    if (!catalogProduct) {
+      return NextResponse.json({ error: "Produto padrão não encontrado." }, { status: 404 });
+    }
+    name = catalogProduct.name;
+    description = catalogProduct.description;
+    category = catalogProduct.category;
+  }
 
   if (name.length < 2 || name.length > 100 || priceCents < 0 || (stock !== null && stock < 0)) {
     return NextResponse.json(
@@ -111,6 +136,7 @@ export async function POST(
     .from("products")
     .insert({
       event_id: id,
+      catalog_product_id: catalogProductId,
       name,
       description,
       category,
@@ -118,7 +144,7 @@ export async function POST(
       stock,
       active: true,
     })
-    .select("id, name, description, price_cents, stock, category, active")
+    .select("id, name, description, price_cents, stock, category, active, catalog_product_id")
     .single();
 
   if (error) {

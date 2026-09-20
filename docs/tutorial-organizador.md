@@ -43,7 +43,8 @@ Use esse período para revisar produtos, preços e equipe.
 
 ## 3. Cadastrar produtos
 
-Para cada produto:
+Para cada produto, você pode escolher um item comum do catálogo da Kermesse ou
+criar um produto personalizado:
 
 1. Abra **Produtos**.
 2. Selecione **Adicionar produto**.
@@ -56,6 +57,11 @@ Para cada produto:
    - Estoque.
 4. Marque o produto como **Ativo**.
 5. Salve.
+
+Produtos comuns, como **Coca-Cola Lata 350 ml**, já podem aparecer no catálogo
+com nome, categoria e preço sugerido. O organizador ainda define o preço e o
+estoque específicos do evento. Produtos personalizados continuam disponíveis
+para receitas próprias da comunidade.
 
 No painel da Kermesse, a gestão de produtos fica dentro do evento em:
 
