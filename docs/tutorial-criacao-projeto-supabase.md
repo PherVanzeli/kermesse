@@ -180,6 +180,16 @@ Essa migration cria a função transacional usada pelo checkout público. Ela
 valida o evento, os produtos ativos, as quantidades e o estoque, calcula o
 total no banco, gera a senha do pedido e registra o pagamento pendente.
 
+Para habilitar o painel de produção, aplique também:
+
+```text
+supabase/migrations/0009_production_orders.sql
+```
+
+Essa migration permite que membros do organizador consultem pedidos, itens e
+pagamentos do próprio evento. O painel atualiza pedidos entre preparando e
+pronto.
+
 Devem existir, entre outras:
 
 - `tenants`
