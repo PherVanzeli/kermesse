@@ -108,6 +108,23 @@ Para o primeiro projeto, a opção mais simples é:
 6. Clique em **Run**.
 7. Abra **Table Editor** e confirme as tabelas.
 
+Depois de aplicar o schema inicial, repita o processo para:
+
+```text
+supabase/migrations/0002_multi_tenant_members_and_payments.sql
+```
+
+Essa segunda migration cria:
+
+- `tenant_members`: vínculo entre usuários do Supabase Auth e organizadores.
+- `payment_accounts`: configuração de gateway por organizador e ambiente.
+- Policies iniciais para tenants, membros e contas de pagamento.
+
+O campo `credentials_ciphertext` existe para armazenar uma referência ou valor
+criptografado pelo backend. Não grave access tokens em texto puro. A chave de
+criptografia deve ficar somente no ambiente do servidor, nunca em uma variável
+`NEXT_PUBLIC_` e nunca no banco junto do ciphertext.
+
 Devem existir, entre outras:
 
 - `tenants`

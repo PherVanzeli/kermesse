@@ -19,7 +19,8 @@ npm run dev
 
 Preencha `.env.local` com a URL e a chave pública do projeto Supabase antes de
 usar autenticação ou dados reais. A migração inicial está em
-`supabase/migrations/0001_initial_schema.sql`.
+`supabase/migrations/0001_initial_schema.sql` e
+`supabase/migrations/0002_multi_tenant_members_and_payments.sql`.
 
 ## Estrutura
 
