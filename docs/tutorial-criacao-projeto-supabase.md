@@ -208,6 +208,18 @@ supabase/migrations/0011_enable_pgcrypto.sql
 Essa migration garante que a extensão `pgcrypto`, usada para gerar os tokens
 públicos dos pedidos, esteja instalada e disponível para a função de criação.
 
+### 12. Isolar pagamentos por evento
+
+Execute:
+
+```text
+supabase/migrations/0012_payment_event_isolation.sql
+```
+
+Essa migration adiciona a associação entre evento e conta de gateway, registra
+o evento do pagamento, prepara os identificadores externos dos provedores e
+cria o registro idempotente de webhooks.
+
 Devem existir, entre outras:
 
 - `tenants`
