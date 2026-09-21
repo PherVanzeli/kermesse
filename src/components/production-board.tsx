@@ -178,10 +178,10 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
                       )}
                       {column.title === "Prontos" && (
                         <button
-                          onClick={() => setPickupOrder(order)}
+                          onClick={() => setScannerOpen(true)}
                           className="mt-4 w-full rounded-xl bg-[#e85d3f] px-4 py-3 font-bold text-white"
                         >
-                          Abrir retirada
+                          Escanear QR para retirar
                         </button>
                       )}
                     </article>
