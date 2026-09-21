@@ -7,6 +7,7 @@ type Order = {
   id: string;
   customer_name: string | null;
   pickup_code: string;
+  public_token: string;
   total_cents: number;
   status: "awaiting_payment" | "paid" | "preparing" | "ready" | "delivered" | "cancelled";
   created_at: string;
@@ -64,13 +65,12 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
         (decodedText) => {
           const parts = decodedText.split(":");
           const orderId =
-            parts.length === 4 &&
             parts[0] === "kermesse" &&
             parts[1] === "pickup" &&
-            parts[2] === eventId
-              ? parts[3]
+            (parts.length === 3 || (parts.length === 4 && parts[2] === eventId))
+              ? parts[parts.length - 1]
               : "";
-          const found = orders.find((order) => order.id === orderId && order.status === "ready");
+          const found = orders.find((order) => order.public_token === orderId && order.status === "ready");
           if (!found) {
             setError("QR Code inválido ou pedido ainda não está pronto.");
             return;

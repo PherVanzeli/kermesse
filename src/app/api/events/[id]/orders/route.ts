@@ -45,7 +45,7 @@ export async function GET(
 
   const { data: orders, error } = await result.supabase
     .from("orders")
-    .select("id, customer_name, pickup_code, total_cents, status, created_at, ready_at, delivered_at")
+    .select("id, customer_name, pickup_code, public_token, total_cents, status, created_at, ready_at, delivered_at")
     .eq("event_id", id)
     .order("created_at", { ascending: true });
   if (error) {

@@ -75,6 +75,7 @@ export async function POST(request: Request) {
       order: {
         id: data[0].order_id,
         pickupCode: data[0].pickup_code,
+        publicToken: data[0].public_token,
         totalCents: data[0].total_cents,
         status: data[0].order_status,
       },

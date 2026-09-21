@@ -94,6 +94,16 @@ Antes de publicar, faça um pedido de teste:
 6. Avance até a tela de pagamento.
 7. Confira se o nome da festa, preços e instruções estão corretos.
 
+Após finalizar um pedido, o cliente recebe um link de acompanhamento sem
+precisar criar conta. Oriente-o a salvar ou compartilhar esse link caso feche
+a página:
+
+```text
+/pedido/[token]
+```
+
+O link mostra a senha, os itens e o status atualizado do pedido.
+
 No ambiente atual, o checkout pode simular a confirmação do Pix. O pagamento
 real será conectado ao Mercado Pago ou Asaas em uma etapa posterior.
 

@@ -37,7 +37,7 @@ export function MenuClient({ event }: { event: EventData }) {
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
   const [customerName, setCustomerName] = useState("");
   const [orderCode, setOrderCode] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [publicToken, setPublicToken] = useState<string | null>(null);
   const [pickupQr, setPickupQr] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "cash" | "paid">("pending");
   const [pixCopied, setPixCopied] = useState(false);
@@ -100,14 +100,14 @@ export function MenuClient({ event }: { event: EventData }) {
         }),
       });
       const result = (await response.json()) as {
-        order?: { id: string; pickupCode: string };
+        order?: { id: string; pickupCode: string; publicToken: string };
         error?: string;
       };
       if (!response.ok || !result.order) {
         throw new Error(result.error ?? "Não foi possível registrar o pedido.");
       }
-      setOrderId(result.order.id);
       setOrderCode(result.order.pickupCode);
+      setPublicToken(result.order.publicToken);
       setPaymentStatus(paymentMethod === "pix" ? "pending" : "cash");
     } catch (caught) {
       setOrderError(caught instanceof Error ? caught.message : "Não foi possível registrar o pedido.");
@@ -117,13 +117,13 @@ export function MenuClient({ event }: { event: EventData }) {
   };
 
   useEffect(() => {
-    if (!orderId) return;
-    void QRCode.toDataURL(`kermesse:pickup:${event.id}:${orderId}`, {
+    if (!publicToken) return;
+    void QRCode.toDataURL(`kermesse:pickup:${event.id}:${publicToken}`, {
       width: 280,
       margin: 1,
       errorCorrectionLevel: "M",
     }).then(setPickupQr);
-  }, [event.id, orderId]);
+  }, [event.id, publicToken]);
 
   const pixCode = `00020126580014BR.GOV.BCB.PIX0136kermesse-${orderCode ?? "pedido"}-${totalCents}5204000053039865802BR5920KERMESSE EVENTO6009SAO PAULO62070503***6304ABCD`;
 
@@ -446,6 +446,16 @@ export function MenuClient({ event }: { event: EventData }) {
                   <img src={pickupQr} alt="QR Code seguro para retirada" className="mx-auto mt-6 h-40 w-40 rounded-2xl bg-white p-2 shadow-md" />
                 )}
                 <p className="mt-3 text-xs text-[#947b68]">Mostre este QR Code na retirada</p>
+                {publicToken && (
+                  <a
+                    href={`/pedido/${publicToken}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 block rounded-2xl border border-[#2f8f75] px-4 py-3 text-sm font-bold text-[#2f8f75]"
+                  >
+                    Abrir acompanhamento do pedido
+                  </a>
+                )}
                 <div className="mt-6 rounded-2xl bg-[#fff1dc] p-4 text-left text-sm text-[#765f4d]">
                   <p className="font-bold text-[#5e493b]">Próximos passos</p>
                   <p className="mt-1">Acompanhe a fila e retire quando seu pedido estiver pronto.</p>

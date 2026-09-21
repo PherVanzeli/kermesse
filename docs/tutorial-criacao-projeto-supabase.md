@@ -190,6 +190,15 @@ Essa migration permite que membros do organizador consultem pedidos, itens e
 pagamentos do próprio evento. Os painéis atualizam pedidos entre preparando,
 pronto e entregue.
 
+Para permitir que o cliente reabra o pedido sem cadastro, aplique também:
+
+```text
+supabase/migrations/0010_public_order_tracking.sql
+```
+
+Essa migration cria um token público aleatório por pedido, a função segura de
+consulta e a base usada pela página de acompanhamento `/pedido/[token]`.
+
 Devem existir, entre outras:
 
 - `tenants`
