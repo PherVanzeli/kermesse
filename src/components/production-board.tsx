@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
 
 type Order = {
   id: string;
@@ -77,15 +77,19 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
           }
           setPickupOrder(found);
           setScannerOpen(false);
-          void scanner.stop().catch(() => undefined);
         },
         () => undefined,
       )
       .catch(() => setError("Não foi possível acessar a câmera. Use a busca pela senha."));
     return () => {
-      if (scannerRef.current) {
-        void scannerRef.current.stop().catch(() => undefined);
-        scannerRef.current = null;
+      const activeScanner = scannerRef.current;
+      scannerRef.current = null;
+      if (
+        activeScanner &&
+        (activeScanner.getState() === Html5QrcodeScannerState.SCANNING ||
+          activeScanner.getState() === Html5QrcodeScannerState.PAUSED)
+      ) {
+        void activeScanner.stop().catch(() => undefined);
       }
     };
   }, [eventId, orders, scannerOpen]);
