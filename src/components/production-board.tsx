@@ -24,6 +24,8 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pickupOrder, setPickupOrder] = useState<Order | null>(null);
+  const [pickupCode, setPickupCode] = useState("");
 
   const loadOrders = useCallback(async () => {
     try {
@@ -60,6 +62,36 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
       return;
     }
     await loadOrders();
+  };
+
+  const confirmPickup = async () => {
+    if (!pickupOrder) return;
+    const response = await fetch(`/api/events/${eventId}/orders`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: pickupOrder.id, status: "delivered" }),
+    });
+    const result = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setError(result.error ?? "Não foi possível registrar a entrega.");
+      return;
+    }
+    setPickupOrder(null);
+    setPickupCode("");
+    await loadOrders();
+  };
+
+  const findPickupOrder = () => {
+    const normalizedCode = pickupCode.trim().toUpperCase();
+    const found = orders.find(
+      (order) => order.status === "ready" && order.pickup_code.toUpperCase() === normalizedCode,
+    );
+    if (!found) {
+      setError("Nenhum pedido pronto encontrado com essa senha.");
+      return;
+    }
+    setError("");
+    setPickupOrder(found);
   };
 
   const columns = [
@@ -104,6 +136,14 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
                           {column.action === "preparing" ? "Aceitar pedido" : "Marcar como pronto"}
                         </button>
                       )}
+                      {column.title === "Prontos" && (
+                        <button
+                          onClick={() => setPickupOrder(order)}
+                          className="mt-4 w-full rounded-xl bg-[#e85d3f] px-4 py-3 font-bold text-white"
+                        >
+                          Abrir retirada
+                        </button>
+                      )}
                     </article>
                   ))}
                   {columnOrders.length === 0 && <p className="rounded-2xl border border-dashed border-[#ddcabe] p-5 text-center text-sm text-[#947b68]">Nenhum pedido</p>}
@@ -111,6 +151,72 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
               </section>
             );
           })}
+        </div>
+      )}
+      {!loading && (
+        <div className="mt-5 rounded-3xl border border-[#f0e3d4] bg-white p-5">
+          <p className="font-bold text-[#2f241d]">Retirada rápida</p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+            <input
+              value={pickupCode}
+              onChange={(event) => setPickupCode(event.target.value.toUpperCase())}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") findPickupOrder();
+              }}
+              placeholder="Digite a senha, ex.: A-042"
+              className="w-full rounded-xl border border-[#eadbca] px-4 py-3 font-bold tracking-wider outline-none focus:border-[#e85d3f]"
+            />
+            <button
+              onClick={findPickupOrder}
+              className="rounded-xl bg-[#2f8f75] px-5 py-3 font-bold text-white"
+            >
+              Buscar retirada
+            </button>
+          </div>
+        </div>
+      )}
+      {pickupOrder && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[#2f241d]/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pickup-dialog-title"
+            className="w-full max-w-lg rounded-3xl bg-[#fffaf3] p-6 shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#e85d3f]">Retirada</p>
+                <h2 id="pickup-dialog-title" className="mt-1 text-3xl font-black text-[#2f241d]">
+                  {pickupOrder.pickup_code}
+                </h2>
+                <p className="mt-1 text-[#765f4d]">{pickupOrder.customer_name || "Cliente"}</p>
+              </div>
+              <button
+                onClick={() => setPickupOrder(null)}
+                aria-label="Fechar retirada"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl text-[#765f4d]"
+              >
+                ×
+              </button>
+            </div>
+            <ul className="mt-5 space-y-2 border-t border-[#eadbca] pt-4 text-[#5e493b]">
+              {pickupOrder.items.map((item, index) => (
+                <li key={`${pickupOrder.id}-${index}`} className="font-semibold">
+                  {item.quantity}x {item.name ?? "Produto"}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 flex items-center justify-between border-t border-[#eadbca] pt-4">
+              <span className="font-bold text-[#765f4d]">Total</span>
+              <strong className="text-xl text-[#2f241d]">{formatPrice(pickupOrder.total_cents)}</strong>
+            </p>
+            <button
+              onClick={() => void confirmPickup()}
+              className="mt-5 w-full rounded-2xl bg-[#2f8f75] px-5 py-4 font-bold text-white"
+            >
+              Confirmar entrega
+            </button>
+          </div>
         </div>
       )}
     </div>
