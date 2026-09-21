@@ -1,3 +1,7 @@
+create extension if not exists "pgcrypto";
+
+set search_path = public, extensions;
+
 alter table public.orders
   add column if not exists public_token text;
 
@@ -28,7 +32,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   current_product record;

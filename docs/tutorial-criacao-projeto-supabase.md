@@ -199,6 +199,15 @@ supabase/migrations/0010_public_order_tracking.sql
 Essa migration cria um token público aleatório por pedido, a função segura de
 consulta e a base usada pela página de acompanhamento `/pedido/[token]`.
 
+Para bancos que já tinham a migration `0010` aplicada, execute também:
+
+```text
+supabase/migrations/0011_enable_pgcrypto.sql
+```
+
+Essa migration garante que a extensão `pgcrypto`, usada para gerar os tokens
+públicos dos pedidos, esteja instalada e disponível para a função de criação.
+
 Devem existir, entre outras:
 
 - `tenants`
