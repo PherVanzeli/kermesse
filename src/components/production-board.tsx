@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 
 type Order = {
   id: string;
@@ -26,6 +27,8 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
   const [error, setError] = useState("");
   const [pickupOrder, setPickupOrder] = useState<Order | null>(null);
   const [pickupCode, setPickupCode] = useState("");
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const loadOrders = useCallback(async () => {
     try {
@@ -49,6 +52,43 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
       window.clearInterval(interval);
     };
   }, [loadOrders]);
+
+  useEffect(() => {
+    if (!scannerOpen) return;
+    const scanner = new Html5Qrcode("production-pickup-scanner");
+    scannerRef.current = scanner;
+    void scanner
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          const parts = decodedText.split(":");
+          const orderId =
+            parts.length === 4 &&
+            parts[0] === "kermesse" &&
+            parts[1] === "pickup" &&
+            parts[2] === eventId
+              ? parts[3]
+              : "";
+          const found = orders.find((order) => order.id === orderId && order.status === "ready");
+          if (!found) {
+            setError("QR Code inválido ou pedido ainda não está pronto.");
+            return;
+          }
+          setPickupOrder(found);
+          setScannerOpen(false);
+          void scanner.stop().catch(() => undefined);
+        },
+        () => undefined,
+      )
+      .catch(() => setError("Não foi possível acessar a câmera. Use a busca pela senha."));
+    return () => {
+      if (scannerRef.current) {
+        void scannerRef.current.stop().catch(() => undefined);
+        scannerRef.current = null;
+      }
+    };
+  }, [eventId, orders, scannerOpen]);
 
   const updateStatus = async (orderId: string, status: "preparing" | "ready") => {
     const response = await fetch(`/api/events/${eventId}/orders`, {
@@ -171,6 +211,29 @@ export function ProductionBoard({ eventId }: { eventId: string }) {
               className="rounded-xl bg-[#2f8f75] px-5 py-3 font-bold text-white"
             >
               Buscar retirada
+            </button>
+            <button
+              onClick={() => setScannerOpen(true)}
+              className="rounded-xl border border-[#2f8f75] px-5 py-3 font-bold text-[#2f8f75]"
+            >
+              Escanear QR Code
+            </button>
+          </div>
+        </div>
+      )}
+      {scannerOpen && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[#2f241d]/60 p-4">
+          <div className="w-full max-w-md rounded-3xl bg-[#fffaf3] p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-black text-[#2f241d]">Escanear retirada</h2>
+              <button onClick={() => setScannerOpen(false)} className="text-2xl text-[#765f4d]" aria-label="Fechar leitor">
+                ×
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-[#765f4d]">Aponte a câmera para o QR Code mostrado pelo cliente.</p>
+            <div id="production-pickup-scanner" className="mt-4 overflow-hidden rounded-2xl bg-[#2f241d]" />
+            <button onClick={() => setScannerOpen(false)} className="mt-4 w-full rounded-xl border border-[#eadbca] px-4 py-3 font-bold text-[#765f4d]">
+              Usar senha manualmente
             </button>
           </div>
         </div>

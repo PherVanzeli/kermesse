@@ -157,14 +157,17 @@ O voluntário da cozinha deve:
 
 O voluntário do balcão deve:
 
-1. Abrir o painel de retirada.
-2. Digitar a senha ou escanear o QR code.
-3. Conferir os itens do pedido.
-4. Confirmar a entrega.
-5. Entregar o pedido ao cliente.
+1. Abrir o painel de produção em um celular ou tablet.
+2. Na coluna **Prontos**, tocar em **Abrir retirada** ou usar **Escanear QR
+   Code**.
+3. Pedir ao cliente que mostre o QR code na tela do pedido.
+4. Conferir a senha, o nome e os itens do pedido.
+5. Confirmar a entrega no modal.
+6. Entregar o pedido ao cliente.
 
-Não entregue um pedido apenas com base no nome. A senha ou o QR code devem ser
-usados para reduzir entregas duplicadas.
+Se a câmera não funcionar, digite a senha manualmente. Não entregue um pedido
+apenas com base no nome. O QR code ou a senha devem ser conferidos antes da
+confirmação para reduzir entregas duplicadas.
 
 ## 8. Operação durante o evento
 

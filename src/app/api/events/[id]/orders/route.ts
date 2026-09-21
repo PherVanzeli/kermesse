@@ -111,6 +111,7 @@ export async function PATCH(
     .update(update)
     .eq("id", payload.orderId)
     .eq("event_id", id)
+    .eq("status", "ready")
     .select("id, status, ready_at, delivered_at")
     .single();
   if (error) {

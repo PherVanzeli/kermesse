@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 
 type Product = {
   id: string;
@@ -36,6 +37,8 @@ export function MenuClient({ event }: { event: EventData }) {
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
   const [customerName, setCustomerName] = useState("");
   const [orderCode, setOrderCode] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [pickupQr, setPickupQr] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "cash" | "paid">("pending");
   const [pixCopied, setPixCopied] = useState(false);
   const [orderError, setOrderError] = useState("");
@@ -97,12 +100,13 @@ export function MenuClient({ event }: { event: EventData }) {
         }),
       });
       const result = (await response.json()) as {
-        order?: { pickupCode: string };
+        order?: { id: string; pickupCode: string };
         error?: string;
       };
       if (!response.ok || !result.order) {
         throw new Error(result.error ?? "Não foi possível registrar o pedido.");
       }
+      setOrderId(result.order.id);
       setOrderCode(result.order.pickupCode);
       setPaymentStatus(paymentMethod === "pix" ? "pending" : "cash");
     } catch (caught) {
@@ -111,6 +115,15 @@ export function MenuClient({ event }: { event: EventData }) {
       setOrderSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (!orderId) return;
+    void QRCode.toDataURL(`kermesse:pickup:${event.id}:${orderId}`, {
+      width: 280,
+      margin: 1,
+      errorCorrectionLevel: "M",
+    }).then(setPickupQr);
+  }, [event.id, orderId]);
 
   const pixCode = `00020126580014BR.GOV.BCB.PIX0136kermesse-${orderCode ?? "pedido"}-${totalCents}5204000053039865802BR5920KERMESSE EVENTO6009SAO PAULO62070503***6304ABCD`;
 
@@ -429,17 +442,10 @@ export function MenuClient({ event }: { event: EventData }) {
                     <p className="mt-1">Pague com cartão no balcão e informe a senha {orderCode}.</p>
                   </div>
                 )}
-                <div className="mx-auto mt-6 flex h-36 w-36 items-center justify-center rounded-2xl border-8 border-white bg-[#2f241d] p-3 shadow-md">
-                  <div className="grid h-full w-full grid-cols-5 gap-1 bg-white p-1">
-                    {Array.from({ length: 25 }).map((_, index) => (
-                      <span
-                        key={index}
-                        className={index % 3 === 0 || index % 7 === 0 ? "bg-[#2f241d]" : "bg-white"}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <p className="mt-3 text-xs text-[#947b68]">Mostre este QR code na retirada</p>
+                {pickupQr && (
+                  <img src={pickupQr} alt="QR Code seguro para retirada" className="mx-auto mt-6 h-40 w-40 rounded-2xl bg-white p-2 shadow-md" />
+                )}
+                <p className="mt-3 text-xs text-[#947b68]">Mostre este QR Code na retirada</p>
                 <div className="mt-6 rounded-2xl bg-[#fff1dc] p-4 text-left text-sm text-[#765f4d]">
                   <p className="font-bold text-[#5e493b]">Próximos passos</p>
                   <p className="mt-1">Acompanhe a fila e retire quando seu pedido estiver pronto.</p>
