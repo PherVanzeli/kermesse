@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const features = [
   {
     title: "Cardápio por QR code",
@@ -122,9 +124,12 @@ export default function Home() {
         <p className="mx-auto mt-4 max-w-xl leading-7 text-[#765f4d]">
           O painel do produtor, o cardápio do cliente e a operação da barraca em uma experiência simples.
         </p>
-        <button className="mt-8 rounded-full bg-[#2f241d] px-7 py-3.5 font-bold text-white transition hover:bg-[#4b392d]">
-          Em breve: acessar o painel
-        </button>
+        <Link
+          href="/login"
+          className="mt-8 inline-block rounded-full bg-[#2f241d] px-7 py-3.5 font-bold text-white transition hover:bg-[#4b392d]"
+        >
+          Acessar painel
+        </Link>
       </section>
     </main>
   );
