@@ -106,16 +106,30 @@ export async function PATCH(
     ...(payload.status === "ready" ? { ready_at: new Date().toISOString() } : {}),
     ...(payload.status === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
   };
+  const allowedPreviousStatuses =
+    payload.status === "preparing"
+      ? ["awaiting_payment", "paid"]
+      : payload.status === "ready"
+        ? ["preparing"]
+        : ["ready"];
   const { data, error } = await result.supabase
     .from("orders")
     .update(update)
     .eq("id", payload.orderId)
     .eq("event_id", id)
-    .eq("status", "ready")
+    .in("status", allowedPreviousStatuses)
     .select("id, status, ready_at, delivered_at")
     .single();
   if (error) {
-    return NextResponse.json({ error: "Não foi possível atualizar o pedido." }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          error.code === "PGRST116"
+            ? "O pedido mudou de status. Atualize o painel e tente novamente."
+            : "Não foi possível atualizar o pedido.",
+      },
+      { status: error.code === "PGRST116" ? 409 : 500 },
+    );
   }
   return NextResponse.json({ order: data });
 }
