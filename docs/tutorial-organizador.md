@@ -126,13 +126,14 @@ Quando tudo estiver revisado:
 
 1. Altere o evento de **Rascunho** para **Ativo**.
 2. Copie o link público do cardápio.
-3. Gere ou imprima o QR code desse link.
-4. Cole os QR codes:
+3. No painel, abra **QR Code do cardápio** no evento.
+4. Baixe a imagem ou copie o link público.
+5. Imprima ou compartilhe o QR code:
    - Nas mesas.
    - Na entrada.
    - Próximo às filas.
    - No balcão de informações.
-5. Faça um teste usando outro celular ou uma janela anônima.
+6. Faça um teste usando outro celular ou uma janela anônima.
 
 O QR code deve apontar para o endereço público do evento, por exemplo:
 

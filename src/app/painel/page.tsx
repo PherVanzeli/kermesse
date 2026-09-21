@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EventStatusControl } from "@/components/event-status-control";
+import { EventQrCode } from "@/components/event-qr-code";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -50,11 +51,12 @@ export default async function DashboardPage() {
             <div className="mt-4 grid gap-3">
               {events.map((event) => (
                 <div key={event.id} className="flex items-center justify-between rounded-2xl border border-[#f0e3d4] bg-white p-5">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-bold text-[#2f241d]">{event.name}</h3>
                     <p className="mt-1 text-sm text-[#947b68]">{event.event_date} · {event.status}</p>
+                    <EventQrCode slug={event.slug} active={event.status === "active"} />
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="ml-4 flex shrink-0 flex-wrap items-center justify-end gap-4">
                     <EventStatusControl eventId={event.id} status={event.status} />
                     <Link href={`/painel/eventos/${event.id}/produtos`} className="text-sm font-bold text-[#2f8f75]">
                       Produtos
