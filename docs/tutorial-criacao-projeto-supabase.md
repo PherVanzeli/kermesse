@@ -233,6 +233,19 @@ identificador externo depois que um pagamento é criado. Também valida que a
 conta e o provedor usados pertencem ao organizador do evento e protege a
 identidade dos registros de webhook.
 
+### 14. Vincular pedidos à configuração do evento
+
+Execute:
+
+```text
+supabase/migrations/0014_bind_orders_to_event_payment_account.sql
+```
+
+Essa migration faz a função de criação selecionar a conta de gateway ativa do
+evento e gravá-la no pagamento junto com o evento e o provedor. Pedidos Pix
+passam a exigir uma configuração ativa; pagamentos manuais continuam
+compatíveis quando não há gateway configurado.
+
 Devem existir, entre outras:
 
 - `tenants`

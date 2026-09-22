@@ -66,6 +66,8 @@ export async function POST(request: Request) {
         ? "Um dos produtos não está mais disponível."
         : errorMessage.includes("Evento não encontrado")
           ? "Este evento não está disponível para novos pedidos."
+        : errorMessage.includes("gateway de pagamento Pix")
+          ? "O pagamento Pix ainda não está configurado para este evento."
         : `Não foi possível registrar o pedido. ${errorMessage || "Verifique os logs da Vercel."}`;
     return NextResponse.json({ error: message }, { status: error?.code === "42883" ? 503 : 400 });
   }
