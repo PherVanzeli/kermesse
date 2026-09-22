@@ -43,9 +43,6 @@ export default async function DashboardPage() {
             Criar evento
           </Link>
         </div>
-        <div className="mt-8">
-          <PaymentSettings />
-        </div>
         <section className="mt-8">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black text-[#2f241d]">Seus eventos</h2>
@@ -54,26 +51,31 @@ export default async function DashboardPage() {
           {events && events.length > 0 ? (
             <div className="mt-4 grid gap-3">
               {events.map((event) => (
-                <div key={event.id} className="flex items-center justify-between rounded-2xl border border-[#f0e3d4] bg-white p-5">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-[#2f241d]">{event.name}</h3>
-                    <p className="mt-1 text-sm text-[#947b68]">{event.event_date} · {event.status}</p>
-                    <EventQrCode slug={event.slug} active={event.status === "active"} />
+                <div key={event.id} className="rounded-2xl border border-[#f0e3d4] bg-white p-5">
+                  <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-[#2f241d]">{event.name}</h3>
+                      <p className="mt-1 text-sm text-[#947b68]">{event.event_date} · {event.status}</p>
+                      <EventQrCode slug={event.slug} active={event.status === "active"} />
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center justify-start gap-4 lg:justify-end">
+                      <EventStatusControl eventId={event.id} status={event.status} />
+                      <Link href={`/painel/eventos/${event.id}/produtos`} className="text-sm font-bold text-[#2f8f75]">
+                        Produtos
+                      </Link>
+                      <Link href={`/painel/eventos/${event.id}/producao`} className="text-sm font-bold text-[#2f8f75]">
+                        Produção
+                      </Link>
+                      <Link href={`/painel/eventos/${event.id}/retirada`} className="text-sm font-bold text-[#2f8f75]">
+                        Retirada
+                      </Link>
+                      <Link href={`/evento/${event.slug}`} className="text-sm font-bold text-[#e85d3f]">
+                        Cardápio
+                      </Link>
+                    </div>
                   </div>
-                  <div className="ml-4 flex shrink-0 flex-wrap items-center justify-end gap-4">
-                    <EventStatusControl eventId={event.id} status={event.status} />
-                    <Link href={`/painel/eventos/${event.id}/produtos`} className="text-sm font-bold text-[#2f8f75]">
-                      Produtos
-                    </Link>
-                    <Link href={`/painel/eventos/${event.id}/producao`} className="text-sm font-bold text-[#2f8f75]">
-                      Produção
-                    </Link>
-                    <Link href={`/painel/eventos/${event.id}/retirada`} className="text-sm font-bold text-[#2f8f75]">
-                      Retirada
-                    </Link>
-                    <Link href={`/evento/${event.slug}`} className="text-sm font-bold text-[#e85d3f]">
-                      Cardápio
-                    </Link>
+                  <div className="mt-5">
+                    <PaymentSettings eventId={event.id} />
                   </div>
                 </div>
               ))}
