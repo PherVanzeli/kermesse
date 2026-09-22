@@ -246,6 +246,18 @@ evento e gravá-la no pagamento junto com o evento e o provedor. Pedidos Pix
 passam a exigir uma configuração ativa; pagamentos manuais continuam
 compatíveis quando não há gateway configurado.
 
+### 15. Camada comum de gateways
+
+A aplicação agora possui um contrato comum em:
+
+```text
+src/lib/payments/
+```
+
+Ele reconhece Asaas, Mercado Pago e PagSeguro sem duplicar o fluxo de
+pagamentos. As operações externas ainda não são executadas nesta etapa; os
+adaptadores falham explicitamente até que cada provedor seja implementado.
+
 Devem existir, entre outras:
 
 - `tenants`
