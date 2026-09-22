@@ -220,6 +220,19 @@ Essa migration adiciona a associação entre evento e conta de gateway, registra
 o evento do pagamento, prepara os identificadores externos dos provedores e
 cria o registro idempotente de webhooks.
 
+### 13. Reforçar a integridade dos pagamentos
+
+Execute:
+
+```text
+supabase/migrations/0013_enforce_payment_integrity.sql
+```
+
+Essa migration impede a troca de evento, organizador, conta de gateway ou
+identificador externo depois que um pagamento é criado. Também valida que a
+conta e o provedor usados pertencem ao organizador do evento e protege a
+identidade dos registros de webhook.
+
 Devem existir, entre outras:
 
 - `tenants`
