@@ -245,6 +245,11 @@ No Supabase:
 
 1. Abra o projeto de produção.
 2. Execute as migrations do diretório `supabase/migrations`.
+
+Para cadastrar credenciais de gateways, configure também na Vercel uma variável
+de ambiente `PAYMENT_CREDENTIALS_ENCRYPTION_KEY` com 64 caracteres
+hexadecimais. Gere uma chave aleatória forte e use o mesmo valor em todos os
+deploys da aplicação. Não publique essa chave no repositório.
 3. Confirme as políticas de RLS.
 4. Copie a URL do projeto.
 5. Copie a chave pública.

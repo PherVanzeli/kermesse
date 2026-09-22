@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EventStatusControl } from "@/components/event-status-control";
 import { EventQrCode } from "@/components/event-qr-code";
+import { PaymentSettings } from "@/components/payment-settings";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -41,6 +42,9 @@ export default async function DashboardPage() {
           <Link href="/painel/eventos/novo" className="rounded-full bg-[#e85d3f] px-5 py-3 text-center font-bold text-white">
             Criar evento
           </Link>
+        </div>
+        <div className="mt-8">
+          <PaymentSettings />
         </div>
         <section className="mt-8">
           <div className="flex items-center justify-between">
