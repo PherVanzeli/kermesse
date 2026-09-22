@@ -8,6 +8,7 @@ import type { PaymentEnvironment } from "@/lib/payments/types";
 type OrderPayload = {
   eventId?: unknown;
   customerName?: unknown;
+  customerDocument?: unknown;
   paymentMethod?: unknown;
   items?: unknown;
 };
@@ -23,10 +24,17 @@ export async function POST(request: Request) {
   if (
     typeof payload.eventId !== "string" ||
     typeof payload.customerName !== "string" ||
+    (payload.paymentMethod === "pix" && typeof payload.customerDocument !== "string") ||
     !["pix", "card"].includes(String(payload.paymentMethod)) ||
     !Array.isArray(payload.items)
   ) {
     return NextResponse.json({ error: "Dados do pedido inválidos." }, { status: 400 });
+  }
+  const customerDocument = typeof payload.customerDocument === "string"
+    ? payload.customerDocument.replace(/\D/g, "")
+    : "";
+  if (payload.paymentMethod === "pix" && ![11, 14].includes(customerDocument.length)) {
+    return NextResponse.json({ error: "Informe um CPF ou CNPJ válido para pagar com Pix." }, { status: 400 });
   }
 
   const items = payload.items.filter(
@@ -114,6 +122,8 @@ export async function POST(request: Request) {
         eventId: payment.event_id,
         tenantId: account.tenant_id,
         amountCents: payment.amount_cents,
+        customerName: payload.customerName.trim(),
+        customerDocument,
         description: `Pedido ${order.pickupCode}`,
         expiresAt: null,
       });
@@ -137,12 +147,17 @@ export async function POST(request: Request) {
         },
       }, { status: 201 });
     } catch (caught) {
+      const providerMessage = caught instanceof Error ? caught.message : "Erro desconhecido.";
       console.error("create Asaas Pix charge failed", {
         orderId: order.id,
-        error: caught instanceof Error ? caught.message : caught,
+        error: providerMessage,
       });
       return NextResponse.json(
-        { error: "Não foi possível gerar a cobrança Pix. Tente novamente ou escolha pagamento no caixa." },
+        {
+          error: process.env.NODE_ENV === "production"
+            ? "Não foi possível gerar a cobrança Pix. Tente novamente ou escolha pagamento no caixa."
+            : `Asaas recusou a cobrança: ${providerMessage}`,
+        },
         { status: 502 },
       );
     }

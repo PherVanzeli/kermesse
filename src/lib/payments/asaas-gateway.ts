@@ -25,6 +25,7 @@ export class AsaasGateway implements PaymentGateway {
       headers: {
         accept: "application/json",
         "content-type": "application/json",
+        "user-agent": "Kermesse/1.0 (Asaas integration)",
         access_token: this.apiKey,
         ...(init?.headers ?? {}),
       },
@@ -32,7 +33,11 @@ export class AsaasGateway implements PaymentGateway {
     });
     const body = await response.json().catch(() => ({})) as AsaasResponse;
     if (!response.ok) {
-      const description = typeof body.errors === "object" ? JSON.stringify(body.errors) : "Resposta rejeitada pelo Asaas.";
+      const description = typeof body.errors === "object"
+        ? JSON.stringify(body.errors)
+        : typeof body.message === "string"
+          ? body.message
+          : `Resposta rejeitada pelo Asaas (HTTP ${response.status}).`;
       throw new PaymentGatewayError(description, response.status === 401 ? "invalid_credentials" : "provider_error");
     }
     return body;
@@ -46,7 +51,8 @@ export class AsaasGateway implements PaymentGateway {
     const customer = await this.request("/customers", {
       method: "POST",
       body: JSON.stringify({
-        name: input.description,
+        name: input.customerName,
+        cpfCnpj: input.customerDocument,
         externalReference: `kermesse-tenant-${input.tenantId}`,
       }),
     });
@@ -59,11 +65,7 @@ export class AsaasGateway implements PaymentGateway {
         value: input.amountCents / 100,
         dueDate: new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 10),
         description: input.description,
-        externalReference: JSON.stringify({
-          kermesse_order_id: input.orderId,
-          kermesse_event_id: input.eventId,
-          kermesse_tenant_id: input.tenantId,
-        }),
+        externalReference: `kermesse:${input.orderId}`,
       }),
     });
     const providerPaymentId = getString(payment.id, "id da cobrança");
@@ -94,8 +96,63 @@ export class AsaasGateway implements PaymentGateway {
   }
 
   parseWebhook(payload: unknown, headers: Headers): ParsedWebhook {
-    void payload;
     void headers;
-    throw new PaymentGatewayError("O webhook do Asaas será implementado na próxima fase.", "unsupported_operation");
+    if (!payload || typeof payload !== "object") {
+      throw new PaymentGatewayError("Payload do webhook do Asaas inválido.", "invalid_webhook");
+    }
+
+    const body = payload as {
+      id?: unknown;
+      event?: unknown;
+      payment?: {
+        id?: unknown;
+        value?: unknown;
+        externalReference?: unknown;
+      };
+    };
+    const providerEventId = getString(body.id, "id do evento");
+    const providerPaymentId = getString(body.payment?.id, "id do pagamento");
+    const event = getString(body.event, "tipo do evento");
+    const externalReference = parseExternalReference(body.payment?.externalReference);
+
+    return {
+      providerEventId,
+      providerPaymentId,
+      amountCents: typeof body.payment?.value === "number"
+        ? Math.round(body.payment.value * 100)
+        : null,
+      eventId: externalReference?.eventId ?? null,
+      orderId: externalReference?.orderId ?? null,
+      status: getWebhookStatus(event),
+    };
   }
+}
+
+function parseExternalReference(value: unknown) {
+  if (typeof value !== "string") return null;
+  if (value.startsWith("kermesse:")) {
+    return {
+      eventId: null,
+      orderId: value.slice("kermesse:".length) || null,
+    };
+  }
+  try {
+    const parsed = JSON.parse(value) as {
+      kermesse_event_id?: unknown;
+      kermesse_order_id?: unknown;
+    };
+    return {
+      eventId: typeof parsed.kermesse_event_id === "string" ? parsed.kermesse_event_id : null,
+      orderId: typeof parsed.kermesse_order_id === "string" ? parsed.kermesse_order_id : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getWebhookStatus(event: string): ProviderPaymentStatus {
+  if (event === "PAYMENT_CONFIRMED" || event === "PAYMENT_RECEIVED") return "confirmed";
+  if (event === "PAYMENT_REFUNDED") return "refunded";
+  if (event === "PAYMENT_OVERDUE" || event === "PAYMENT_DELETED") return "failed";
+  return "pending";
 }

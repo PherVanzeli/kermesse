@@ -17,6 +17,18 @@ const providerLabels: Record<string, string> = {
   pagseguro: "PagSeguro",
 };
 
+async function readJson<T>(response: Response): Promise<T & { error?: string }> {
+  const text = await response.text();
+  if (!text.trim()) {
+    throw new Error(`O servidor retornou uma resposta vazia (HTTP ${response.status}).`);
+  }
+  try {
+    return JSON.parse(text) as T & { error?: string };
+  } catch {
+    throw new Error(`O servidor retornou uma resposta inválida (HTTP ${response.status}).`);
+  }
+}
+
 export function PaymentSettings({ eventId }: { eventId?: string }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [provider, setProvider] = useState("asaas");
@@ -29,7 +41,7 @@ export function PaymentSettings({ eventId }: { eventId?: string }) {
 
   const loadAccounts = async () => {
     const response = await fetch("/api/payment-accounts");
-    const result = (await response.json()) as { accounts?: Account[]; error?: string };
+    const result = await readJson<{ accounts?: Account[] }>(response);
     if (!response.ok) throw new Error(result.error ?? "Não foi possível carregar os gateways.");
     setAccounts(result.accounts ?? []);
   };
@@ -38,7 +50,7 @@ export function PaymentSettings({ eventId }: { eventId?: string }) {
     let mounted = true;
     void fetch("/api/payment-accounts")
       .then(async (response) => {
-        const result = (await response.json()) as { accounts?: Account[]; error?: string };
+        const result = await readJson<{ accounts?: Account[] }>(response);
         if (!response.ok) throw new Error(result.error ?? "Não foi possível carregar os gateways.");
         if (mounted) setAccounts(result.accounts ?? []);
       })
@@ -60,7 +72,7 @@ export function PaymentSettings({ eventId }: { eventId?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider, environment, apiKey, accountReference: reference }),
       });
-      const result = (await response.json()) as { account?: Account; error?: string };
+      const result = await readJson<{ account?: Account }>(response);
       if (!response.ok) throw new Error(result.error ?? "Não foi possível salvar.");
       setApiKey("");
       await loadAccounts();
@@ -82,7 +94,7 @@ export function PaymentSettings({ eventId }: { eventId?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paymentAccountId: selectedAccount }),
       });
-      const result = (await response.json()) as { error?: string };
+      const result = await readJson<Record<string, never>>(response);
       if (!response.ok) throw new Error(result.error ?? "Não foi possível associar.");
       setMessage("Gateway associado ao evento.");
     } catch (error) {
@@ -97,7 +109,7 @@ export function PaymentSettings({ eventId }: { eventId?: string }) {
     setMessage("");
     try {
       const response = await fetch(`/api/payment-accounts/${accountId}/test`, { method: "POST" });
-      const result = (await response.json()) as { error?: string; message?: string };
+      const result = await readJson<{ message?: string }>(response);
       if (!response.ok) throw new Error(result.error ?? "Não foi possível testar.");
       await loadAccounts();
       setMessage(result.message ?? "Conexão validada.");

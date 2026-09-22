@@ -36,6 +36,7 @@ export function MenuClient({ event }: { event: EventData }) {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
   const [customerName, setCustomerName] = useState("");
+  const [customerDocument, setCustomerDocument] = useState("");
   const [orderCode, setOrderCode] = useState<string | null>(null);
   const [publicToken, setPublicToken] = useState<string | null>(null);
   const [pickupQr, setPickupQr] = useState("");
@@ -94,6 +95,7 @@ export function MenuClient({ event }: { event: EventData }) {
         body: JSON.stringify({
           eventId: event.id,
           customerName,
+          customerDocument,
           paymentMethod,
           items: cartItems.map((product) => ({
             productId: product.id,
@@ -326,6 +328,27 @@ export function MenuClient({ event }: { event: EventData }) {
                     required
                     className="mt-2 w-full rounded-2xl border border-[#eadbca] bg-white px-4 py-3 text-[#2f241d] outline-none transition placeholder:text-[#b9a594] focus:border-[#e85d3f]"
                   />
+
+                  {paymentMethod === "pix" && (
+                    <>
+                      <label className="mt-4 block text-sm font-bold text-[#5e493b]" htmlFor="customer-document">
+                        CPF ou CNPJ para o Pix
+                      </label>
+                      <input
+                        id="customer-document"
+                        value={customerDocument}
+                        onChange={(event) => setCustomerDocument(event.target.value)}
+                        placeholder="Somente números ou com pontuação"
+                        inputMode="numeric"
+                        minLength={11}
+                        required
+                        className="mt-2 w-full rounded-2xl border border-[#eadbca] bg-white px-4 py-3 text-[#2f241d] outline-none transition placeholder:text-[#b9a594] focus:border-[#e85d3f]"
+                      />
+                      <p className="mt-1 text-xs text-[#947b68]">
+                        Necessário para emitir a cobrança Pix no Asaas.
+                      </p>
+                    </>
+                  )}
 
                   <div className="mt-6 grid grid-cols-2 gap-3">
                     <button

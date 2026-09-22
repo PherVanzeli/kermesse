@@ -15,6 +15,8 @@ export type CreatePixChargeInput = {
   eventId: string;
   tenantId: string;
   amountCents: number;
+  customerName: string;
+  customerDocument: string;
   description: string;
   expiresAt: string | null;
 };

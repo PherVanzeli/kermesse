@@ -23,6 +23,14 @@ export async function POST(
     .maybeSingle();
   if (!membership) return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("payment gateway test unavailable: SUPABASE_SERVICE_ROLE_KEY is not configured");
+    return NextResponse.json(
+      { error: "O servidor não está configurado com SUPABASE_SERVICE_ROLE_KEY." },
+      { status: 503 },
+    );
+  }
+
   const admin = createAdminClient();
   const { data: account, error } = await admin
     .from("payment_accounts")

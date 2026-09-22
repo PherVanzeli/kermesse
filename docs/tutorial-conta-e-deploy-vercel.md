@@ -255,6 +255,10 @@ Para criar cobranças Pix no backend, configure também
 `SUPABASE_SERVICE_ROLE_KEY` com a Secret key do mesmo projeto Supabase. Essa
 variável é exclusiva do servidor, nunca deve começar com `NEXT_PUBLIC_` e nunca
 deve ser enviada ao navegador ou commitada no repositório.
+Configure também `ASAAS_WEBHOOK_TOKEN` com o token definido no webhook do Asaas.
+No painel do Asaas, use `https://seu-dominio/api/webhooks/asaas` como URL e
+habilite os eventos de pagamento confirmado, recebido, vencido, excluído e
+estornado.
 3. Confirme as políticas de RLS.
 4. Copie a URL do projeto.
 5. Copie a chave pública.

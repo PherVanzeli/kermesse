@@ -37,10 +37,9 @@ O landing page atual é apenas a primeira tela do produto. As próximas rotas
 podem ser organizadas por fluxo:
 
 - `/evento/[slug]`: cardápio público e carrinho conectado ao Supabase
-- O checkout demo permite escolher Pix ou pagamento com cartão no caixa. Para
-  Pix, exibe QR/copia e cola e permite simular a confirmação; essa simulação
-  será substituída pelo webhook do gateway. A confirmação ainda não grava no
-  Supabase.
+- O checkout permite escolher Pix ou pagamento com cartão no caixa. Para Pix,
+  exibe o QR/copia e cola real do gateway, e a confirmação é recebida pelo
+  webhook do Asaas.
 - `/pedido/[id]`: acompanhamento e QR de retirada
 - `/painel`: produtor, produção e retirada
 
