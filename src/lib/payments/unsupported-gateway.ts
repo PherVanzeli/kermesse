@@ -11,6 +11,15 @@ import {
 export class UnsupportedGateway implements PaymentGateway {
   constructor(public readonly provider: PaymentProvider) {}
 
+  testConnection(): Promise<void> {
+    return Promise.reject(
+      new PaymentGatewayError(
+        `O teste de conexão do gateway ${this.provider} ainda não está integrado.`,
+        "unsupported_operation",
+      ),
+    );
+  }
+
   createPixCharge(input: CreatePixChargeInput): Promise<PixCharge> {
     void input;
     return Promise.reject(

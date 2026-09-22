@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { decryptPaymentCredential } from "@/lib/payments/credentials";
+import { AsaasGateway } from "@/lib/payments/asaas-gateway";
+import type { PaymentEnvironment } from "@/lib/payments/types";
 
 type OrderPayload = {
   eventId?: unknown;
@@ -72,16 +76,77 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: error?.code === "42883" ? 503 : 400 });
   }
 
-  return NextResponse.json(
-    {
-      order: {
-        id: data[0].order_id,
-        pickupCode: data[0].pickup_code,
-        publicToken: data[0].public_token,
-        totalCents: data[0].total_cents,
-        status: data[0].order_status,
-      },
-    },
-    { status: 201 },
-  );
+  const order = {
+    id: data[0].order_id,
+    pickupCode: data[0].pickup_code,
+    publicToken: data[0].public_token,
+    totalCents: data[0].total_cents,
+    status: data[0].order_status,
+  };
+
+  if (payload.paymentMethod === "pix") {
+    try {
+      const admin = createAdminClient();
+      const { data: payment, error: paymentError } = await admin
+        .from("payments")
+        .select("id, event_id, payment_account_id, provider, amount_cents")
+        .eq("order_id", order.id)
+        .single();
+      if (paymentError || !payment?.payment_account_id || payment.provider !== "asaas") {
+        throw new Error("A conta Asaas do evento não está disponível.");
+      }
+
+      const { data: account, error: accountError } = await admin
+        .from("payment_accounts")
+        .select("tenant_id, environment, credentials_ciphertext, active")
+        .eq("id", payment.payment_account_id)
+        .single();
+      if (accountError || !account?.active || !account.credentials_ciphertext) {
+        throw new Error("A conexão Asaas do evento não foi validada.");
+      }
+
+      const gateway = new AsaasGateway(
+        decryptPaymentCredential(account.credentials_ciphertext),
+        account.environment as PaymentEnvironment,
+      );
+      const charge = await gateway.createPixCharge({
+        orderId: order.id,
+        eventId: payment.event_id,
+        tenantId: account.tenant_id,
+        amountCents: payment.amount_cents,
+        description: `Pedido ${order.pickupCode}`,
+        expiresAt: null,
+      });
+      const { error: updateError } = await admin
+        .from("payments")
+        .update({
+          provider_payment_id: charge.providerPaymentId,
+          provider_reference: charge.providerReference,
+          pix_copy_paste: charge.copyPasteCode,
+          pix_qr_code: charge.qrCodeImage,
+        })
+        .eq("id", payment.id);
+      if (updateError) throw new Error("Não foi possível salvar a cobrança Pix.");
+
+      return NextResponse.json({
+        order: {
+          ...order,
+          pixCopyPaste: charge.copyPasteCode,
+          pixQrCode: charge.qrCodeImage,
+          pixExpiresAt: charge.expiresAt,
+        },
+      }, { status: 201 });
+    } catch (caught) {
+      console.error("create Asaas Pix charge failed", {
+        orderId: order.id,
+        error: caught instanceof Error ? caught.message : caught,
+      });
+      return NextResponse.json(
+        { error: "Não foi possível gerar a cobrança Pix. Tente novamente ou escolha pagamento no caixa." },
+        { status: 502 },
+      );
+    }
+  }
+
+  return NextResponse.json({ order }, { status: 201 });
 }

@@ -92,6 +92,22 @@ export function PaymentSettings({ eventId }: { eventId?: string }) {
     }
   };
 
+  const testAccount = async (accountId: string) => {
+    setSaving(true);
+    setMessage("");
+    try {
+      const response = await fetch(`/api/payment-accounts/${accountId}/test`, { method: "POST" });
+      const result = (await response.json()) as { error?: string; message?: string };
+      if (!response.ok) throw new Error(result.error ?? "Não foi possível testar.");
+      await loadAccounts();
+      setMessage(result.message ?? "Conexão validada.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível testar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <section className="rounded-3xl border border-[#f0e3d4] bg-white p-6">
       <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#e85d3f]">Pagamentos</p>
@@ -121,8 +137,22 @@ export function PaymentSettings({ eventId }: { eventId?: string }) {
               <span>
                 <strong>{providerLabels[account.provider]}</strong>
                 <span className="ml-2 text-sm text-[#765f4d]">{account.environment} · ****{account.secret_last_four}</span>
+                {account.active && <span className="ml-2 text-xs font-bold text-[#2f8f75]">conectado</span>}
               </span>
-              {eventId && <input type="radio" name="gateway" value={account.id} checked={selectedAccount === account.id} onChange={() => setSelectedAccount(account.id)} />}
+              <span className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void testAccount(account.id);
+                  }}
+                  disabled={saving || account.provider !== "asaas"}
+                  className="rounded-lg border border-[#2f8f75] px-3 py-2 text-xs font-bold text-[#2f8f75] disabled:opacity-50"
+                >
+                  Testar
+                </button>
+                {eventId && <input type="radio" name="gateway" value={account.id} checked={selectedAccount === account.id} onChange={() => setSelectedAccount(account.id)} />}
+              </span>
             </label>
           ))}
           {eventId && <button type="button" onClick={assignAccount} disabled={!selectedAccount || saving} className="rounded-xl bg-[#e85d3f] px-4 py-3 font-bold text-white disabled:opacity-50">Associar ao evento</button>}

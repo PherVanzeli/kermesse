@@ -39,6 +39,8 @@ export function MenuClient({ event }: { event: EventData }) {
   const [orderCode, setOrderCode] = useState<string | null>(null);
   const [publicToken, setPublicToken] = useState<string | null>(null);
   const [pickupQr, setPickupQr] = useState("");
+  const [pixCopyPaste, setPixCopyPaste] = useState<string | null>(null);
+  const [pixQrCode, setPixQrCode] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "cash" | "paid">("pending");
   const [pixCopied, setPixCopied] = useState(false);
   const [orderError, setOrderError] = useState("");
@@ -100,7 +102,13 @@ export function MenuClient({ event }: { event: EventData }) {
         }),
       });
       const result = (await response.json()) as {
-        order?: { id: string; pickupCode: string; publicToken: string };
+        order?: {
+          id: string;
+          pickupCode: string;
+          publicToken: string;
+          pixCopyPaste?: string;
+          pixQrCode?: string | null;
+        };
         error?: string;
       };
       if (!response.ok || !result.order) {
@@ -108,6 +116,8 @@ export function MenuClient({ event }: { event: EventData }) {
       }
       setOrderCode(result.order.pickupCode);
       setPublicToken(result.order.publicToken);
+      setPixCopyPaste(result.order.pixCopyPaste ?? null);
+      setPixQrCode(result.order.pixQrCode ?? null);
       setPaymentStatus(paymentMethod === "pix" ? "pending" : "cash");
     } catch (caught) {
       setOrderError(caught instanceof Error ? caught.message : "Não foi possível registrar o pedido.");
@@ -125,10 +135,9 @@ export function MenuClient({ event }: { event: EventData }) {
     }).then(setPickupQr);
   }, [event.id, publicToken]);
 
-  const pixCode = `00020126580014BR.GOV.BCB.PIX0136kermesse-${orderCode ?? "pedido"}-${totalCents}5204000053039865802BR5920KERMESSE EVENTO6009SAO PAULO62070503***6304ABCD`;
-
   const copyPixCode = async () => {
-    await navigator.clipboard.writeText(pixCode);
+    if (!pixCopyPaste) return;
+    await navigator.clipboard.writeText(pixCopyPaste);
     setPixCopied(true);
   };
 
@@ -400,18 +409,13 @@ export function MenuClient({ event }: { event: EventData }) {
                 {paymentMethod === "pix" && paymentStatus !== "paid" && (
                   <div className="mt-5 rounded-2xl border border-[#eadbca] bg-white p-4 text-left">
                     <p className="font-bold text-[#2f241d]">Pague com Pix para liberar o preparo</p>
-                    <div className="mx-auto mt-4 flex h-36 w-36 items-center justify-center rounded-2xl border-8 border-white bg-[#2f241d] p-3 shadow-md">
-                      <div className="grid h-full w-full grid-cols-5 gap-1 bg-white p-1">
-                        {Array.from({ length: 25 }).map((_, index) => (
-                          <span
-                            key={index}
-                            className={index % 3 === 0 || index % 7 === 0 ? "bg-[#2f241d]" : "bg-white"}
-                          />
-                        ))}
-                      </div>
-                    </div>
+                    {pixQrCode ? (
+                      <img src={pixQrCode} alt="QR Code Pix para pagamento" className="mx-auto mt-4 h-36 w-36 rounded-2xl bg-white p-2 shadow-md" />
+                    ) : (
+                      <p className="mt-3 text-sm text-[#b33b2d]">QR Code Pix indisponível.</p>
+                    )}
                     <p className="mt-3 break-all rounded-xl bg-[#fff1dc] p-3 text-xs leading-5 text-[#765f4d]">
-                      {pixCode}
+                      {pixCopyPaste ?? "Código Pix indisponível."}
                     </p>
                     <button
                       onClick={copyPixCode}
@@ -419,14 +423,8 @@ export function MenuClient({ event }: { event: EventData }) {
                     >
                       {pixCopied ? "Código Pix copiado" : "Copiar código Pix"}
                     </button>
-                    <button
-                      onClick={() => setPaymentStatus("paid")}
-                      className="mt-3 w-full rounded-xl bg-[#2f8f75] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#26755f]"
-                    >
-                      Simular Pix confirmado
-                    </button>
                     <p className="mt-2 text-center text-xs text-[#947b68]">
-                      Esta simulação será substituída pelo webhook do gateway.
+                      Após o pagamento, aguarde a confirmação automática.
                     </p>
                   </div>
                 )}

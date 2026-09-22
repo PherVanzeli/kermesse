@@ -250,6 +250,11 @@ Para cadastrar credenciais de gateways, configure também na Vercel uma variáve
 de ambiente `PAYMENT_CREDENTIALS_ENCRYPTION_KEY` com 64 caracteres
 hexadecimais. Gere uma chave aleatória forte e use o mesmo valor em todos os
 deploys da aplicação. Não publique essa chave no repositório.
+
+Para criar cobranças Pix no backend, configure também
+`SUPABASE_SERVICE_ROLE_KEY` com a Secret key do mesmo projeto Supabase. Essa
+variável é exclusiva do servidor, nunca deve começar com `NEXT_PUBLIC_` e nunca
+deve ser enviada ao navegador ou commitada no repositório.
 3. Confirme as políticas de RLS.
 4. Copie a URL do projeto.
 5. Copie a chave pública.

@@ -40,6 +40,7 @@ export type ParsedWebhook = {
 
 export type PaymentGateway = {
   readonly provider: PaymentProvider;
+  testConnection(): Promise<void>;
   createPixCharge(input: CreatePixChargeInput): Promise<PixCharge>;
   getPaymentStatus(providerPaymentId: string): Promise<ProviderPaymentStatus>;
   parseWebhook(payload: unknown, headers: Headers): ParsedWebhook;
