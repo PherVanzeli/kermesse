@@ -60,6 +60,23 @@ export async function PUT(
     })
     .select("event_id, payment_account_id, enabled")
     .single();
-  if (error) return NextResponse.json({ error: "Não foi possível associar o gateway." }, { status: 500 });
+  if (error) {
+    console.error("event payment gateway association failed", {
+      eventId: id,
+      paymentAccountId: payload.paymentAccountId,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+    return NextResponse.json(
+      {
+        error: process.env.NODE_ENV === "production"
+          ? "Não foi possível associar o gateway. Consulte os logs da Vercel."
+          : `Não foi possível associar o gateway: ${error.message}`,
+      },
+      { status: 500 },
+    );
+  }
   return NextResponse.json({ setting: data });
 }
