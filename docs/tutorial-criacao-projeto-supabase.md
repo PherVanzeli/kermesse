@@ -216,6 +216,19 @@ Execute:
 supabase/migrations/0012_payment_event_isolation.sql
 ```
 
+### 13. Atualizar status do pedido em tempo real
+
+Execute também:
+
+```text
+supabase/migrations/0015_order_realtime_broadcast.sql
+```
+
+Essa migration publica somente o token público e o novo status do pedido em
+um canal específico. A página de acompanhamento busca os dados completos pela
+função pública já existente, sem expor a tabela `orders` diretamente ao
+cliente.
+
 Essa migration adiciona a associação entre evento e conta de gateway, registra
 o evento do pagamento, prepara os identificadores externos dos provedores e
 cria o registro idempotente de webhooks.

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { createClient as createSupabaseClient } from "@/lib/supabase/browser";
 
 type Order = {
   pickup_code: string;
@@ -28,6 +29,9 @@ export function OrderTracking({ token, initialOrder }: { token: string; initialO
   const [order, setOrder] = useState(initialOrder);
   const [error, setError] = useState("");
   const [pickupQr, setPickupQr] = useState("");
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(
+    typeof Notification === "undefined" ? "unsupported" : Notification.permission,
+  );
 
   useEffect(() => {
     void QRCode.toDataURL(`kermesse:pickup:${token}`, {
@@ -53,6 +57,37 @@ export function OrderTracking({ token, initialOrder }: { token: string; initialO
     return () => window.clearInterval(interval);
   }, [loadOrder, order.status]);
 
+  useEffect(() => {
+    const supabase = createSupabaseClient();
+    const channel = supabase
+      .channel(`order:${token}`)
+      .on("broadcast", { event: "status_changed" }, ({ payload }) => {
+        if (payload?.public_token === token) void loadOrder();
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadOrder, token]);
+
+  useEffect(() => {
+    if (order.status !== "ready" || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const notificationKey = `kermesse:ready:${token}`;
+    if (window.sessionStorage.getItem(notificationKey)) return;
+    window.sessionStorage.setItem(notificationKey, "sent");
+    new Notification("Pedido pronto para retirada", {
+      body: `A senha ${order.pickup_code} já pode ser retirada.`,
+      tag: notificationKey,
+    });
+  }, [order.status, order.pickup_code, token]);
+
+  const enableNotifications = async () => {
+    if (typeof Notification === "undefined") return;
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+  };
+
   const currentIndex = steps.findIndex(([status]) => status === order.status);
 
   return (
@@ -62,6 +97,20 @@ export function OrderTracking({ token, initialOrder }: { token: string; initialO
         <h1 className="mt-2 text-3xl font-black text-[#2f241d]">Acompanhe seu pedido</h1>
         <p className="mt-2 text-[#765f4d]">{order.customer_name}</p>
         {error && <p className="mt-4 rounded-2xl bg-[#fde9e4] p-4 text-sm font-semibold text-[#b6452f]">{error}</p>}
+        {notificationPermission === "default" && (
+          <button
+            type="button"
+            onClick={() => void enableNotifications()}
+            className="mt-4 w-full rounded-2xl border border-[#2f8f75] px-4 py-3 text-sm font-bold text-[#2f8f75]"
+          >
+            Avisar quando o pedido estiver pronto
+          </button>
+        )}
+        {notificationPermission === "denied" && (
+          <p className="mt-4 rounded-2xl bg-[#fff1dc] p-4 text-sm text-[#765f4d]">
+            As notificações estão bloqueadas neste navegador. Você ainda pode acompanhar esta página normalmente.
+          </p>
+        )}
         <section className="mt-6 rounded-3xl bg-[#2f241d] p-6 text-center text-white">
           <p className="text-sm text-[#ddcabe]">Sua senha</p>
           <p className="mt-2 text-5xl font-black tracking-wider text-[#f6c453]">{order.pickup_code}</p>

@@ -43,6 +43,11 @@ podem ser organizadas por fluxo:
 - `/pedido/[id]`: acompanhamento e QR de retirada
 - `/painel`: produtor, produção e retirada
 
+Na página de acompanhamento, o cliente pode autorizar notificações do
+navegador. O status é atualizado em tempo real pelo Supabase Realtime, sem
+dependência de SMS ou outro serviço de mensageria; o polling continua como
+fallback quando Realtime ou notificações não estiverem disponíveis.
+
 ## Tutoriais
 
 - [Tutorial do organizador](./docs/tutorial-organizador.md): configuração do
