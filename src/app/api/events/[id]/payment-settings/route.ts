@@ -49,9 +49,45 @@ export async function PUT(
     .maybeSingle();
   if (!account) return NextResponse.json({ error: "Conta de gateway não encontrada." }, { status: 404 });
 
+  const { data: existingSetting, error: existingSettingError } = await supabase
+    .from("event_payment_settings")
+    .select("event_id, tenant_id, payment_account_id, enabled")
+    .eq("event_id", id)
+    .maybeSingle();
+  if (existingSettingError) {
+    console.error("event payment gateway association lookup failed", existingSettingError);
+    return NextResponse.json({ error: "Não foi possível verificar o gateway atual." }, { status: 500 });
+  }
+
+  if (existingSetting?.payment_account_id === payload.paymentAccountId) {
+    const { data, error } = await supabase
+      .from("event_payment_settings")
+      .update({ enabled: true, updated_at: new Date().toISOString() })
+      .eq("event_id", id)
+      .select("event_id, payment_account_id, enabled")
+      .single();
+    if (error) {
+      console.error("event payment gateway association update failed", error);
+      return NextResponse.json({ error: "Não foi possível ativar o gateway do evento." }, { status: 500 });
+    }
+    return NextResponse.json({ setting: data });
+  }
+
+  if (existingSetting && existingSetting.payment_account_id !== payload.paymentAccountId) {
+    const { error: deleteError } = await supabase
+      .from("event_payment_settings")
+      .delete()
+      .eq("event_id", id)
+      .eq("tenant_id", membership.tenant_id);
+    if (deleteError) {
+      console.error("event payment gateway association replacement failed", deleteError);
+      return NextResponse.json({ error: "Não foi possível substituir o gateway do evento." }, { status: 500 });
+    }
+  }
+
   const { data, error } = await supabase
     .from("event_payment_settings")
-    .upsert({
+    .insert({
       event_id: id,
       tenant_id: membership.tenant_id,
       payment_account_id: payload.paymentAccountId,
